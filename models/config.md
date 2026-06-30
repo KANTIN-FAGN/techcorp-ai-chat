@@ -1,1 +1,0 @@
-# Modèle Phi-3.5-Financial
