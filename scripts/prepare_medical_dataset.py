@@ -31,7 +31,7 @@ RANDOM_SEED = 42
 MIN_PATIENT_LEN = 15        # caractères minimum pour la question patient
 MIN_DOCTOR_LEN = 20         # caractères minimum pour la réponse médecin
 MAX_LEN = 4000               # longueur max (on évite les textes démesurés / bruit)
-OUTPUT_DIR = Path("output")
+OUTPUT_DIR = Path("../medical_dataset/output")
 
 random.seed(RANDOM_SEED)
 
