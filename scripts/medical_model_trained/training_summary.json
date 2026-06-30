@@ -1,0 +1,11 @@
+{
+  "model_name": "microsoft/Phi-3.5-mini-instruct",
+  "dataset_path": "../medical_dataset/output/medical_dataset_clean.json",
+  "max_samples": 500,
+  "epochs": 1,
+  "train_examples": 475,
+  "eval_examples": 25,
+  "duration_seconds": 240.8,
+  "final_train_loss": 8.167514038085937,
+  "final_eval_loss": 8.13779354095459
+}

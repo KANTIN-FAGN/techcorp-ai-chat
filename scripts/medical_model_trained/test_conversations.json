@@ -1,0 +1,27 @@
+[
+  {
+    "prompt": "Hello doctor, I have had a persistent headache for three days. What should I do?",
+    "response": null,
+    "error": "'DynamicCache' object has no attribute 'seen_tokens'"
+  },
+  {
+    "prompt": "Hi doctor, I am a 25 year old experiencing chest pain after exercise.",
+    "response": null,
+    "error": "'DynamicCache' object has no attribute 'seen_tokens'"
+  },
+  {
+    "prompt": "Hello doctor, what are common symptoms of seasonal allergies?",
+    "response": null,
+    "error": "'DynamicCache' object has no attribute 'seen_tokens'"
+  },
+  {
+    "prompt": "Hi doctor, I have not been sleeping well for two weeks, any advice?",
+    "response": null,
+    "error": "'DynamicCache' object has no attribute 'seen_tokens'"
+  },
+  {
+    "prompt": "Hello doctor, is it normal to feel dizzy after standing up quickly?",
+    "response": null,
+    "error": "'DynamicCache' object has no attribute 'seen_tokens'"
+  }
+]
