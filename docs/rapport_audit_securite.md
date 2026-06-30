@@ -1,6 +1,4 @@
 # Rapport d'Audit de Sécurité — Projet TechCorp AI Chat
-**Filière : CYBER**
-**Auteur :** [ton nom]
 **Date :** 30/06/2026
 **Statut :** Confidentiel — usage interne hackathon
 
