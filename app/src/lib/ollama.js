@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_OLLAMA_URL || "http://localhost:11434";
+const BASE_URL = import.meta.env.VITE_OLLAMA_URL || "http://192.168.10.49:11434";
 const MODEL = import.meta.env.VITE_OLLAMA_MODEL || "phi3.5";
 
 /**
