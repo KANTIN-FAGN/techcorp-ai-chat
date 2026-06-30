@@ -1,1 +1,0 @@
-# Documentation Infra / Cybersecurity Configuration

@@ -1,1 +1,0 @@
-# Scripts d'entraînement et de tests
