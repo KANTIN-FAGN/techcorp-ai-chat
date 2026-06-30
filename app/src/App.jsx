@@ -8,6 +8,7 @@ import { useLocalStorage } from "./lib/useLocalStorage.js";
 const DEFAULT_TITLE = "Nouvelle conversation";
 const CONVERSATIONS_KEY = "techcorp-ai-chat:conversations";
 const ACTIVE_ID_KEY = "techcorp-ai-chat:active-id";
+const THEME_KEY = "techcorp-ai-chat:theme";
 
 const SUGGESTIONS = [
   "Explique-moi le ratio dette/EBITDA",
@@ -15,6 +16,19 @@ const SUGGESTIONS = [
   "Quels sont les risques d'un portefeuille trop concentré ?",
   "Compare le rendement obligataire et actions",
 ];
+
+const GREETINGS = [
+  "Comment ça va ?",
+  "Prêt à analyser ?",
+  "Par où commence-t-on ?",
+  "Une question financière ?",
+  "Que puis-je faire pour vous ?",
+  "À quoi pensez-vous ?",
+];
+
+function randomGreeting() {
+  return GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
+}
 
 function createConversation() {
   return {
@@ -37,8 +51,11 @@ export default function App() {
   const [status, setStatus] = useState("checking");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [theme, setTheme] = useLocalStorage(THEME_KEY, "dark");
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const abortRef = useRef(null);
   const scrollRef = useRef(null);
+  const stickToBottomRef = useRef(true);
 
   const active = useMemo(
     () => conversations.find((c) => c.id === activeId) ?? conversations[0],
@@ -46,6 +63,11 @@ export default function App() {
   );
   const messages = active.messages;
   const isEmpty = messages.length === 0;
+  const greeting = useMemo(() => randomGreeting(), [active.id]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   useEffect(() => {
     checkOllamaStatus().then((ok) => setStatus(ok ? "online" : "offline"));
@@ -56,8 +78,49 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    if (stickToBottomRef.current) {
+      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    }
   }, [messages]);
+
+  useEffect(() => {
+    scrollToBottom(false);
+  }, [active.id]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return undefined;
+
+    function handleScroll() {
+      const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+      const atBottom = distance < 80;
+      stickToBottomRef.current = atBottom;
+      setShowScrollButton(!atBottom);
+    }
+
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [isEmpty]);
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      const isMod = e.metaKey || e.ctrlKey;
+      if (isMod && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        handleNewConversation();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  function scrollToBottom(smooth = true) {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+    stickToBottomRef.current = true;
+    setShowScrollButton(false);
+  }
 
   function updateActiveMessages(updater) {
     setConversations((prev) =>
@@ -89,6 +152,23 @@ export default function App() {
     const fresh = createConversation();
     setConversations([fresh]);
     setActiveId(fresh.id);
+  }
+
+  function handleExportConversation(id) {
+    const conversation = conversations.find((c) => c.id === id);
+    if (!conversation || conversation.messages.length === 0) return;
+
+    const text = conversation.messages
+      .map((m) => `${m.role === "user" ? "Vous" : "TechCorp AI"} :\n${m.content}`)
+      .join("\n\n");
+
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${conversation.title.replace(/[^\w\s-]/g, "").trim() || "conversation"}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   async function runAssistantReply(history, assistantMessageId) {
@@ -141,6 +221,8 @@ export default function App() {
 
     updateActiveMessages(() => [...nextMessages, assistantMessage]);
     setInput("");
+    stickToBottomRef.current = true;
+    setShowScrollButton(false);
 
     setConversations((prev) =>
       prev.map((c) =>
@@ -187,6 +269,9 @@ export default function App() {
         onRename={handleRenameConversation}
         onDelete={handleDeleteConversation}
         onClearAll={handleClearAll}
+        onExport={handleExportConversation}
+        theme={theme}
+        onToggleTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
         status={status}
         model={OLLAMA_MODEL}
         isOpen={sidebarOpen}
@@ -214,7 +299,7 @@ export default function App() {
           <span className="topbar__brand">TechCorp AI</span>
 
           <div className={`status-pill status-pill--${status}`}>
-            <span className="status-dot" />
+            <span className={`status-dot status-dot--${status}`} />
             {status === "online" && "Connecté"}
             {status === "offline" && "Hors ligne"}
             {status === "checking" && "Connexion…"}
@@ -222,9 +307,9 @@ export default function App() {
         </header>
 
         {isEmpty ? (
-          <div className="hero">
+          <div className="hero" key={active.id}>
             <h1 className="hero__title">
-              <span className="hero__title-gradient">Comment ça va ?</span>
+              <span className="hero__title-gradient">{greeting}</span>
             </h1>
 
             <div className="hero__composer">
@@ -255,6 +340,19 @@ export default function App() {
                   />
                 ))}
               </div>
+
+              {showScrollButton && (
+                <button
+                  type="button"
+                  className="scroll-bottom-btn"
+                  onClick={() => scrollToBottom()}
+                  aria-label="Revenir en bas"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 5v14M5 12l7 7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              )}
             </main>
 
             <footer className="composer">

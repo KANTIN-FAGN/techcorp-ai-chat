@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 import BrandIcon from "./BrandIcon.jsx";
 
+const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform ?? navigator.userAgent);
+
 export default function Sidebar({
   conversations,
   activeId,
@@ -10,6 +12,9 @@ export default function Sidebar({
   onRename,
   onDelete,
   onClearAll,
+  onExport,
+  theme,
+  onToggleTheme,
   status,
   model,
   isOpen,
@@ -97,6 +102,7 @@ export default function Sidebar({
             <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
           Nouvelle conversation
+          <kbd className="kbd-hint">{isMac ? "⌘K" : "Ctrl+K"}</kbd>
         </button>
 
         {searchOpen ? (
@@ -178,6 +184,15 @@ export default function Sidebar({
                       <button type="button" onClick={() => startRename(c)}>
                         Renommer
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onExport(c.id);
+                          setMenuOpenId(null);
+                        }}
+                      >
+                        Exporter
+                      </button>
                       <button type="button" className="conversation-menu__danger" onClick={() => requestDelete(c)}>
                         Supprimer
                       </button>
@@ -190,6 +205,30 @@ export default function Sidebar({
         </nav>
 
         <div className="sidebar__footer">
+          <button type="button" className="nav-item" onClick={onToggleTheme}>
+            {theme === "dark" ? (
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="4.5" stroke="currentColor" strokeWidth="1.6" />
+                <path
+                  d="M12 2.5v2M12 19.5v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2.5 12h2M19.5 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M20 14.5A8.5 8.5 0 119.5 4a7 7 0 0010.5 10.5z"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
+            {theme === "dark" ? "Mode clair" : "Mode sombre"}
+          </button>
+
           <button
             type="button"
             className="nav-item nav-item--danger"

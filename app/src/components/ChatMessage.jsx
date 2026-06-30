@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { useSpeechSynthesis } from "../lib/useSpeechSynthesis.js";
+import { useTypewriter } from "../lib/useTypewriter.js";
 import BrandIcon from "./BrandIcon.jsx";
 
 export default function ChatMessage({ id, role, content, isStreaming, onRegenerate, regenerateDisabled }) {
   const isUser = role === "user";
   const [copied, setCopied] = useState(false);
   const { isSpeaking, isSupported: ttsSupported, speak, stop } = useSpeechSynthesis();
+  const displayedContent = useTypewriter(content, isStreaming);
+  const isRevealing = isStreaming || displayedContent.length < content.length;
 
   async function handleCopy() {
     try {
@@ -17,7 +20,7 @@ export default function ChatMessage({ id, role, content, isStreaming, onRegenera
     }
   }
 
-  const showActions = !isUser && !isStreaming && content;
+  const showActions = !isUser && !isRevealing && content;
 
   return (
     <div className={`message-row ${isUser ? "message-row--user" : "message-row--assistant"}`}>
@@ -30,10 +33,18 @@ export default function ChatMessage({ id, role, content, isStreaming, onRegenera
       <div className="message-col">
         {!isUser && <span className="message-label">TechCorp AI</span>}
         <div className={`bubble ${isUser ? "bubble--user" : "bubble--assistant"}`}>
-          <p>
-            {content}
-            {isStreaming && <span className="cursor" aria-hidden="true" />}
-          </p>
+          {isStreaming && !content ? (
+            <div className="typing-dots" aria-label="TechCorp AI est en train d'écrire">
+              <span />
+              <span />
+              <span />
+            </div>
+          ) : (
+            <p>
+              {displayedContent}
+              {isRevealing && <span className="cursor" aria-hidden="true" />}
+            </p>
+          )}
         </div>
 
         {showActions && (
